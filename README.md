@@ -7,6 +7,12 @@
 
 Collection of patches to cope with certain OpenFOAM(R) idiosyncrasies.
 
+## Patches
+
+### 001-foamMonitor-enchancements.patch
+
+Small enhancements to make foamMonitor output more readable.
+
 ## Disclaimer
 
 This offering is not approved or endorsed by OpenCFD Limited, producer and

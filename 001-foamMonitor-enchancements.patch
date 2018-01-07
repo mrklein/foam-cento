@@ -1,0 +1,66 @@
+ bin/foamMonitor | 21 ++++++++++++++++++---
+ 1 file changed, 18 insertions(+), 3 deletions(-)
+
+diff --git a/bin/foamMonitor b/bin/foamMonitor
+index df5aca2da..50709f074 100755
+--- a/bin/foamMonitor
++++ b/bin/foamMonitor
+@@ -61,9 +61,20 @@ error() {
+ 
+ plotFileHeader() {
+     cat<<EOF
+-set term x11 1 font "helvetica,17" linewidth 1.5 persist noraise
++selected_terminal = 'x11'
++if (strstrt(GPVAL_TERMINALS, 'qt')) {
++  selected_terminal = 'qt'
++}
++if (strstrt(GPVAL_TERMINALS, 'wxt')) {
++  selected_terminal = 'wxt'
++}
++set term selected_terminal font "sans,16" linewidth 1.5 persist noraise enhanced
++set size ratio 0.62111801242236
++set key opaque font "sans,12" box linewidth 0.5
+ $logscale
++$explabels
+ $yrange
++set grid
+ set title "Data Monitoring"
+ set xlabel "$xlabel"
+ plot \\
+@@ -88,8 +99,9 @@ isInteger() {
+ idle=60
+ refresh=10
+ logscale=""
++explabels=""
+ yrange=""
+-command -v gnuplot >/dev/null 2>&1 || error "Gnuplot not installed"
++command -v gnuplot >/dev/null 2>&1 || error "Gnuplot is not installed"
+ 
+ # parse options
+ while [ "$#" -gt 0 ]
+@@ -105,6 +117,7 @@ do
+         ;;
+     -l | -logscale)
+         logscale="set logscale y"
++        explabels="set format y \"%g\""
+         shift 1
+         ;;
+     -r | -refresh)
+@@ -163,7 +176,7 @@ i=1
+ for field in $keys
+ do
+     i=$(( i + 1 ))
+-    plot_line="\"$file\" using 1:${i} with lines title \"$field\""
++    plot_line="\"$file\" using 1:${i} with linespoints pointsize 0.8 pointinterval -10 title \"$field\""
+     if [ $i -lt "$n_cols" ]
+     then
+        plot_line="$plot_line, \\"
+@@ -178,6 +191,8 @@ pid=$!
+ 
+ while true
+ do
++    # Does file still exist?
++    [ -f "$file" ] || break
+     mod_time=$(stat --format=%Y "$file")
+     idle_ago=$(( $(date +%s) - idle ))
+     test "$mod_time" -gt "$idle_ago" || break
